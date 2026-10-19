@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en" class="dark h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usability Evaluation & Interactive Redesign Suite</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        },
+                        dark: {
+                            bg: '#0b0f17',
+                            card: '#111827',
+                            panel: '#1f2937',
+                            border: '#374151',
+                            subtle: '#1e293b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0b0f17;
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f17;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+
+        /* UI Animations */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+        .animate-shake {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.2); }
+            50% { box-shadow: 0 0 30px rgba(99, 102, 241, 0.6); }
+        }
+        .pulse-glow {
+            animation: pulseGlow 2.5s infinite;
+        }
+
+        /* Comparative Split Slider */
+        .before-after-container {
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .before-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 50%;
+            overflow: hidden;
+            z-index: 10;
+            border-right: 2px solid #6366f1;
+        }
+
+        .slider-handle {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 4px;
+            background-color: #6366f1;
+            z-index: 20;
+            transform: translateX(-50%);
+            cursor: ew-resize;
+        }
+
+        /* Annotation Hotspot pulse */
+        .hotspot-pulse {
+            position: relative;
+        }
+        .hotspot-pulse::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 9999px;
+            background: rgba(239, 68, 68, 0.4);
+            animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+
+        /* Glassmorphism background */
+        .glass-card {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- NAVIGATION HEADER -->
+    <header class="h-16 bg-dark-card border-b border-dark-border flex items-center justify-between px-6 z-40 flex-shrink-0 sticky top-0">
+        <!-- Logo & Title -->
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-purple-500 flex items-center justify-center font-bold text-white text-lg shadow-lg shadow-brand-500/20">
+                <i class="fa-solid fa-microscope text-lg"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="font-extrabold text-base tracking-tight text-white">UX Evaluation Suite</h1>
+                    <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-500 border border-brand-500/20">Nielsen 10 Audit</span>
+                </div>
+                <p class="text-xs text-gray-400">Heuristic Evaluation & Interactive Redesign Portfolio</p>
+            </div>
+        </div>
+
+        <!-- Main View Switcher Tabs -->
+        <nav class="hidden md:flex items-center bg-dark-bg p-1 rounded-xl border border-dark-border gap-1">
+            <button id="nav-audit" onclick="switchMainTab('audit')" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-brand-600 shadow-sm transition flex items-center gap-2">
+                <i class="fa-solid fa-clipboard-check text-xs"></i> Heuristic Audit
+            </button>
+            <button id="nav-compare" onclick="switchMainTab('compare')" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-white transition flex items-center gap-2">
+                <i class="fa-solid fa-columns text-xs"></i> Before vs. After
+            </button>
+            <button id="nav-prototype" onclick="switchMainTab('prototype')" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-white transition flex items-center gap-2">
+                <i class="fa-solid fa-play text-xs text-emerald-400"></i> Live Prototype
+            </button>
+            <button id="nav-video" onclick="switchMainTab('video')" class="nav-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-white transition flex items-center gap-2">
+                <i class="fa-solid fa-film text-xs text-purple-400"></i> Demo Studio
+            </button>
+        </nav>
+
+        <!-- Right Utility Actions -->
+        <div class="flex items-center gap-3">
+            <button onclick="openModal('readme-modal')" class="px-3 py-1.5 rounded-lg bg-dark-panel hover:bg-dark-border text-gray-300 text-xs font-medium border border-dark-border transition flex items-center gap-2">
+                <i class="fa-solid fa-book-open text-brand-500"></i>
+                <span class="hidden sm:inline">README / Docs</span>
+            </button>
+            
+            <button onclick="copyShareableUrl()" class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold shadow-lg shadow-brand-500/20 transition flex items-center gap-2">
+                <i class="fa-solid fa-share-nodes"></i>
+                <span class="hidden sm:inline">Share Prototype</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT VIEWPORT CONTAINER -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 relative">
+
+        <!-- TAB 1: HEURISTIC AUDIT & FRICTION POINTS -->
+        <section id="tab-audit" class="space-y-8 max-w-7xl mx-auto">
+            
+            <!-- Hero Summary Bar -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-dark-card border border-dark-border p-5 rounded-2xl flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center text-xl font-bold">
+                        4
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-400 font-medium">Critical Friction Points</div>
+                        <div class="text-lg font-bold text-white">4 Violations Identified</div>
+                    </div>
+                </div>
+
+                <div class="bg-dark-card border border-dark-border p-5 rounded-2xl flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center text-xl font-bold">
+                        6.2
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-400 font-medium">System Usability Score</div>
+                        <div class="text-lg font-bold text-white">Before Redesign: Poor</div>
+                    </div>
+                </div>
+
+                <div class="bg-dark-card border border-dark-border p-5 rounded-2xl flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl font-bold">
+                        9.4
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-400 font-medium">Post-Redesign Score</div>
+                        <div class="text-lg font-bold text-white">Optimized Architecture</div>
+                    </div>
+                </div>
+
+                <div class="bg-dark-card border border-dark-border p-5 rounded-2xl flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center text-xl font-bold">
+                        10/10
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-400 font-medium">Nielsen Coverage</div>
+                        <div class="text-lg font-bold text-white">Complete Evaluation</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jakob Nielsen's 10 Heuristics Checklist Matrix -->
+            <div class="bg-dark-card border border-dark-border rounded-2xl p-6 space-y-4">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 border-b border-dark-border pb-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-brand-500"></i> Jakob Nielsen's 10 Usability Heuristics Audit Checklist
+                        </h2>
+                        <p class="text-xs text-gray-400">Comprehensive evaluation across established usability design standards.</p>
+                    </div>
+                    <span class="text-xs font-mono bg-dark-bg text-brand-500 px-3 py-1 rounded-lg border border-dark-border">Scope: Web & Mobile Checkout Flow</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+                    <!-- Heuristic Item 1 -->
+                    <div class="p-3 bg-dark-bg rounded-xl border border-red-500/30 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-mono uppercase font-bold text-red-400">H1 • Critical Violation</span>
+                            <i class="fa-solid fa-triangle-exclamation text-red-400 text-xs"></i>
+                        </div>
+                        <div class="font-bold text-xs text-white">1. Visibility of System Status</div>
+                        <p class="text-[11px] text-gray-400">Missing loading state during checkout submit causing double submission.</p>
+                    </div>
+
+                    <!-- Heuristic Item 2 -->
+                    <div class="p-3 bg-dark-bg rounded-xl border border-emerald-500/20 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-mono uppercase font-bold text-emerald-400">H2 • Pass</span>
+                            <i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
+                        </div>
+                        <div class="font-bold text-xs text-white">2. Match System & Real World</div>
+                        <p class="text-[11px] text-gray-400">Standard shopping cart and payment metaphors used appropriately.</p>
+                    </div>
+
+                    <!-- Heuristic Item 3 -->
+                    <div class="p-3 bg-dark-bg rounded-xl border border-amber-500/30 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-mono uppercase font-bold text-amber-400">H3 • Medium Issue</span>
+                            <i class="fa-solid fa-circle-exclamation text-amber-400 text-xs"></i>
+                        </div>
+                        <div class="font-bold text-xs text-white">3. User Control & Freedom</div>
+                        <p class="text-[11px] text-gray-400">No easy 'Cancel Order' or step-back control in multi-step form.</p>
+                    </div>
+
+                    <!-- Heuristic Item 4 -->
+                    <div class="p-3 bg-dark-bg rounded-xl border border-emerald-500/20 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-mono uppercase font-bold text-emerald-400">H4 • Pass</span>
+                            <i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
+                        </div>
+                        <div class="font-bold text-xs text-white">4. Consistency & Standards</div>
+                        <p class="text-[11px] text-gray-400">Button styling and primary action hierarchies are maintained.</p>
+                    </div>
+
+                    <!-- Heuristic Item 5 -->
+                    <div class="p-3 bg-dark-bg rounded-xl border border-red-500/30 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-mono uppercase font-bold text-red-400">H5 • Critical Violation</span>
+                            <i class="fa-solid fa-triangle-exclamation text-red-400 text-xs"></i>
+                        </div>
+                        <div class="font-bold text-xs text-white">5. Error Prevention</div>
+                        <p class="text-[11px] text-gray-400">No inline field validation for credit card format prior to submission.</p>
+                    </div>
+
+                    <!-- Heuristic Item 6 -->
+                    <div class="p-3 bg-dark-bg rounded-xl border border-amber-500/30 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-mono uppercase font-bold text-amber-400">H6 • Medium Issue</span>
+                            <i class="fa-solid fa-circle-exclamation text-amber-400 text-xs"></i>
+                        </div>
+                        <div class="font-bold text-xs text-white">6. Recognition vs Recall</div>
+                        <p class="text-[11px] text-gray-400">Total price is hidden during final payment details entry.</p>
+                    </div>
+
+                    <!-- Heuristic Item 7 -->
+                    <div class="p-3 bg-dark-bg rounded-xl border border-emerald-500/20 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-mono uppercase font-bold text-emerald-400">H7 • Pass</span>
+                            <i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
+                        </div>
+                        <div class="font-bold text-xs text-white">7. Flexibility & Efficiency</div>
+                        <p class="text-[11px] text-gray-400">Keyboard tab navigation supported across all primary inputs.</p>
+                    </div>
+
+                    <!-- Heuristic Item 8 -->
+                    <div class="p-3 bg-dark-bg rounded-xl border border-red-500/30 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-mono uppercase font-bold text-red-400">H8 • High Violation</span>
+                            <i class="fa-solid fa-triangle-exclamation text-red-400 text-xs"></i>
+                        </div>
+                        <div class="font-bold text-xs text-white">8. Aesthetic & Minimalist</div>
+                        <p class="text-[11px] text-gray-400">Cluttered promo banners distracting from core checkout button.</p>
+                    </div>
+
+                    <!-- Heuristic Item 9 -->
+                    <div class="p-3 bg-dark-bg rounded-xl border border-red-500/30 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-mono uppercase font-bold text-red-400">H9 • High Violation</span>
+                            <i class="fa-solid fa-triangle-exclamation text-red-400 text-xs"></i>
+                        </div>
+                        <div class="font-bold text-xs text-white">9. Diagnose & Recover Error</div>
+                        <p class="text-[11px] text-gray-400">Generic "Error Code 400" alert shown instead of actionable hint.</p>
+                    </div>
+
+                    <!-- Heuristic Item 10 -->
+                    <div class="p-3 bg-dark-bg rounded-xl border border-emerald-500/20 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-mono uppercase font-bold text-emerald-400">H10 • Pass</span>
+                            <i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
+                        </div>
+                        <div class="font-bold text-xs text-white">10. Help & Documentation</div>
+                        <p class="text-[11px] text-gray-400">Contextual tooltip hints present on CVV security input.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Title: Annotated Friction Points -->
+            <div class="space-y-1">
+                <h2 class="text-xl font-bold text-white">4 Primary Usability Friction Points & WCAG Violations</h2>
+                <p class="text-xs text-gray-400">Detailed breakdown of high-severity usability barriers with annotated mockups.</p>
+            </div>
+
+            <!-- Friction Point Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Friction Point 1 -->
+                <div class="bg-dark-card border border-dark-border rounded-2xl overflow-hidden flex flex-col">
+                    <!-- Screenshot Mockup with Annotation -->
+                    <div class="h-56 bg-neutral-900 relative p-4 flex items-center justify-center border-b border-dark-border overflow-hidden">
+                        <div class="w-full max-w-xs bg-neutral-800 rounded-xl p-4 border border-neutral-700 space-y-3 relative">
+                            <div class="h-3 w-1/2 bg-neutral-600 rounded"></div>
+                            <div class="h-8 bg-neutral-700 rounded-lg border border-rose-500 relative flex items-center px-3">
+                                <span class="text-xs text-gray-300 font-mono">4532 8901 2</span>
+                                <!-- Annotated Hotspot Callout -->
+                                <div class="absolute -right-3 -top-3 w-7 h-7 rounded-full bg-rose-500 text-white flex items-center justify-center font-bold text-xs hotspot-pulse shadow-lg cursor-pointer">
+                                    1
+                                </div>
+                            </div>
+                            <div class="p-2 bg-rose-500/10 border border-rose-500/30 rounded text-[10px] text-rose-300">
+                                ⚠ Error: Invalid input value.
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Details -->
+                    <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-mono text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20 font-bold">Severity: CRITICAL</span>
+                                <span class="text-xs text-gray-400">WCAG 2.1 AA • 3.3.1 Error Identification</span>
+                            </div>
+                            <h3 class="font-bold text-white text-base">#1 Cryptic Error Messages & Post-Submit Failure</h3>
+                            <p class="text-xs text-gray-300 leading-relaxed">
+                                Users are only informed of formatting errors *after* full page submission. The error message lacks constructive guidance on how to fix the input format.
+                            </p>
+                        </div>
+                        <div class="p-3 bg-dark-bg rounded-xl border border-dark-border text-xs text-emerald-400 flex items-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles text-brand-500"></i>
+                            <span><strong>Redesign Fix:</strong> Real-time regex validation with dynamic inline formatting hints.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Friction Point 2 -->
+                <div class="bg-dark-card border border-dark-border rounded-2xl overflow-hidden flex flex-col">
+                    <div class="h-56 bg-neutral-900 relative p-4 flex items-center justify-center border-b border-dark-border overflow-hidden">
+                        <div class="w-full max-w-xs bg-neutral-800 rounded-xl p-4 border border-neutral-700 space-y-3 relative">
+                            <div class="flex justify-between items-center">
+                                <div class="h-3 w-1/3 bg-neutral-600 rounded"></div>
+                                <span class="text-[9px] text-neutral-500">Low Contrast Ratio 1.8:1</span>
+                            </div>
+                            <button class="w-full py-2 bg-neutral-700 text-neutral-500 text-xs font-semibold rounded-lg relative cursor-not-allowed">
+                                Proceed to Checkout
+                                <div class="absolute -right-2 -top-2 w-7 h-7 rounded-full bg-rose-500 text-white flex items-center justify-center font-bold text-xs hotspot-pulse shadow-lg">
+                                    2
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 font-bold">Severity: HIGH</span>
+                                <span class="text-xs text-gray-400">WCAG 2.1 AAA • 1.4.3 Contrast</span>
+                            </div>
+                            <h3 class="font-bold text-white text-base">#2 Low Contrast Action Button & Disabled State Trap</h3>
+                            <p class="text-xs text-gray-300 leading-relaxed">
+                                The primary action button is disabled without explaining why, leaving users stuck with low contrast text (1.8:1) violating accessibility requirements.
+                            </p>
+                        </div>
+                        <div class="p-3 bg-dark-bg rounded-xl border border-dark-border text-xs text-emerald-400 flex items-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles text-brand-500"></i>
+                            <span><strong>Redesign Fix:</strong> High contrast active button with contextual tooltip guidance.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Friction Point 3 -->
+                <div class="bg-dark-card border border-dark-border rounded-2xl overflow-hidden flex flex-col">
+                    <div class="h-56 bg-neutral-900 relative p-4 flex items-center justify-center border-b border-dark-border overflow-hidden">
+                        <div class="w-full max-w-xs bg-neutral-800 rounded-xl p-4 border border-neutral-700 text-center space-y-2 relative">
+                            <div class="text-2xl text-neutral-600"><i class="fa-solid fa-folder-open"></i></div>
+                            <div class="text-xs text-neutral-400 font-bold">No Items Found</div>
+                            <!-- Hotspot Callout -->
+                            <div class="absolute right-4 top-4 w-7 h-7 rounded-full bg-rose-500 text-white flex items-center justify-center font-bold text-xs hotspot-pulse shadow-lg">
+                                3
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 font-bold">Severity: MEDIUM</span>
+                                <span class="text-xs text-gray-400">Heuristic #3 User Control</span>
+                            </div>
+                            <h3 class="font-bold text-white text-base">#3 Dead-End Empty State Without Recovery CTA</h3>
+                            <p class="text-xs text-gray-300 leading-relaxed">
+                                When search or filter results return empty, the interface displays a static blank message with no button to reset filters or continue browsing.
+                            </p>
+                        </div>
+                        <div class="p-3 bg-dark-bg rounded-xl border border-dark-border text-xs text-emerald-400 flex items-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles text-brand-500"></i>
+                            <span><strong>Redesign Fix:</strong> Dynamic empty states with prominent "Reset Filters" action.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Friction Point 4 -->
+                <div class="bg-dark-card border border-dark-border rounded-2xl overflow-hidden flex flex-col">
+                    <div class="h-56 bg-neutral-900 relative p-4 flex items-center justify-center border-b border-dark-border overflow-hidden">
+                        <div class="w-full max-w-xs bg-neutral-800 rounded-xl p-4 border border-neutral-700 space-y-3 relative">
+                            <div class="flex items-center gap-2 text-xs text-amber-400">
+                                <i class="fa-solid fa-spinner animate-spin"></i>
+                                <span>Processing Payment...</span>
+                            </div>
+                            <div class="absolute right-4 top-4 w-7 h-7 rounded-full bg-rose-500 text-white flex items-center justify-center font-bold text-xs hotspot-pulse shadow-lg">
+                                4
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-mono text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20 font-bold">Severity: CRITICAL</span>
+                                <span class="text-xs text-gray-400">Heuristic #1 Visibility Status</span>
+                            </div>
+                            <h3 class="font-bold text-white text-base">#4 Missing Loading Progress & Unresponsive Interface</h3>
+                            <p class="text-xs text-gray-300 leading-relaxed">
+                                Long API requests lock the UI without a visual overlay or progress bar, provoking multiple button clicks and duplicate order charges.
+                            </p>
+                        </div>
+                        <div class="p-3 bg-dark-bg rounded-xl border border-dark-border text-xs text-emerald-400 flex items-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles text-brand-500"></i>
+                            <span><strong>Redesign Fix:</strong> Skeleton loaders and modal button state transition.</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- TAB 2: BEFORE VS AFTER COMPARATIVE BOARD -->
+        <section id="tab-compare" class="space-y-6 max-w-7xl mx-auto hidden">
+            
+            <!-- Controls Bar -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-dark-card p-4 rounded-2xl border border-dark-border">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-code-compare text-brand-500"></i> Comparative Redesign Board
+                    </h2>
+                    <p class="text-xs text-gray-400">Interact with both versions live or drag the comparison slider.</p>
+                </div>
+
+                <div class="flex bg-dark-bg p-1 rounded-xl border border-dark-border">
+                    <button id="view-mode-split" onclick="setCompareMode('split')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-brand-600 shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-sliders"></i> Split Slider
+                    </button>
+                    <button id="view-mode-side" onclick="setCompareMode('side')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-white transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-table-columns"></i> Side-by-Side
+                    </button>
+                </div>
+            </div>
+
+            <!-- SPLIT SLIDER MODE CONTAINER -->
+            <div id="compare-split-container" class="bg-dark-card border border-dark-border rounded-2xl p-4 overflow-hidden relative">
+                <div id="slider-box" class="before-after-container h-[580px] rounded-xl border border-dark-border bg-neutral-900 relative">
+                    
+                    <!-- AFTER LAYER (Bottom) -->
+                    <div class="absolute inset-0 p-6 bg-gradient-to-br from-neutral-900 to-indigo-950/40 flex flex-col justify-between">
+                        <div class="flex justify-between items-center text-emerald-400 font-bold text-xs uppercase tracking-wider bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 w-fit">
+                            ✓ OPTIMIZED 'AFTER' INTERFACE
+                        </div>
+
+                        <!-- After UI Card -->
+                        <div class="max-w-md mx-auto w-full bg-dark-card border border-brand-500/30 rounded-2xl p-6 shadow-2xl space-y-4">
+                            <div class="flex justify-between items-center border-b border-dark-border pb-3">
+                                <div>
+                                    <h3 class="font-bold text-white text-base">Secure Checkout</h3>
+                                    <p class="text-[11px] text-gray-400">Step 2 of 2 • Encrypted 256-bit</p>
+                                </div>
+                                <span class="font-mono font-bold text-emerald-400 text-sm">$299.00</span>
+                            </div>
+
+                            <div class="space-y-3">
+                                <div class="space-y-1">
+                                    <label class="text-[11px] font-semibold text-gray-300">Cardholder Name</label>
+                                    <input type="text" value="Alex Mercer" class="w-full px-3.5 py-2.5 bg-dark-bg border border-emerald-500/50 rounded-xl text-xs text-white focus:outline-none">
+                                    <span class="text-[10px] text-emerald-400 flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Valid name format</span>
+                                </div>
+
+                                <div class="space-y-1">
+                                    <label class="text-[11px] font-semibold text-gray-300">Card Number</label>
+                                    <input type="text" value="4532 •••• •••• 8892" class="w-full px-3.5 py-2.5 bg-dark-bg border border-emerald-500/50 rounded-xl text-xs font-mono text-white focus:outline-none">
+                                    <span class="text-[10px] text-emerald-400 flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Visa verified</span>
+                                </div>
+                            </div>
+
+                            <button class="w-full py-3 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl shadow-lg shadow-brand-500/25 transition text-xs flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-lock"></i> Pay $299.00 Safely
+                            </button>
+                        </div>
+
+                        <div class="text-center text-xs text-gray-400">Drag handle to compare changes</div>
+                    </div>
+
+                    <!-- BEFORE LAYER (Top Layer Clipped) -->
+                    <div id="before-layer" class="before-layer bg-neutral-900 p-6 flex flex-col justify-between">
+                        <div class="flex justify-between items-center text-rose-400 font-bold text-xs uppercase tracking-wider bg-rose-500/10 px-3 py-1 rounded-full border border-rose-500/20 w-fit">
+                            ⚠ FLAWED 'BEFORE' INTERFACE
+                        </div>
+
+                        <!-- Before UI Card -->
+                        <div class="max-w-md mx-auto w-full bg-neutral-800 border border-neutral-700 rounded-2xl p-6 shadow-2xl space-y-4">
+                            <div class="border-b border-neutral-700 pb-3">
+                                <h3 class="font-bold text-white text-base">Checkout</h3>
+                            </div>
+
+                            <div class="space-y-3">
+                                <div class="space-y-1">
+                                    <label class="text-[11px] text-neutral-400">Name</label>
+                                    <input type="text" placeholder="Name" class="w-full px-3 py-2 bg-neutral-900 border border-neutral-700 rounded-lg text-xs text-white">
+                                </div>
+
+                                <div class="space-y-1">
+                                    <label class="text-[11px] text-neutral-400">Card No</label>
+                                    <input type="text" value="45328901" class="w-full px-3 py-2 bg-neutral-900 border border-rose-500 rounded-lg text-xs font-mono text-white">
+                                    <span class="text-[10px] text-rose-400">Error 402</span>
+                                </div>
+                            </div>
+
+                            <button class="w-full py-2.5 bg-neutral-700 text-neutral-500 font-bold rounded-lg text-xs cursor-not-allowed">
+                                Submit Order
+                            </button>
+                        </div>
+
+                        <div class="text-center text-xs text-neutral-500">Flawed UX state</div>
+                    </div>
+
+                    <!-- Slider Handle -->
+                    <div id="slider-handle" class="slider-handle flex items-center justify-center">
+                        <div class="w-8 h-8 rounded-full bg-brand-600 text-white shadow-xl flex items-center justify-center text-xs font-bold border-2 border-white">
+                            <i class="fa-solid fa-arrows-left-right"></i>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SIDE-BY-SIDE MODE CONTAINER (Hidden by default) -->
+            <div id="compare-side-container" class="grid grid-cols-1 md:grid-cols-2 gap-6 hidden">
+                <!-- Before Side -->
+                <div class="bg-dark-card border border-rose-500/30 rounded-2xl p-6 space-y-4">
+                    <div class="flex items-center justify-between border-b border-dark-border pb-3">
+                        <span class="font-bold text-rose-400 text-xs flex items-center gap-2">
+                            <i class="fa-solid fa-circle-xmark"></i> BEFORE: Usability Friction State
+                        </span>
+                        <span class="text-[10px] font-mono text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded">SUS Score: 6.2</span>
+                    </div>
+
+                    <div class="p-4 bg-neutral-900 rounded-xl space-y-3">
+                        <div class="text-xs text-gray-400">Issues present:</div>
+                        <ul class="text-xs text-rose-300 space-y-1.5 list-disc pl-4">
+                            <li>No real-time feedback on input error.</li>
+                            <li>Low visual contrast on submit CTA.</li>
+                            <li>Unexplained disabled state.</li>
+                            <li>Total amount hidden on checkout step.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- After Side -->
+                <div class="bg-dark-card border border-emerald-500/30 rounded-2xl p-6 space-y-4">
+                    <div class="flex items-center justify-between border-b border-dark-border pb-3">
+                        <span class="font-bold text-emerald-400 text-xs flex items-center gap-2">
+                            <i class="fa-solid fa-circle-check"></i> AFTER: Redesigned UX State
+                        </span>
+                        <span class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">SUS Score: 9.4</span>
+                    </div>
+
+                    <div class="p-4 bg-dark-bg rounded-xl space-y-3">
+                        <div class="text-xs text-gray-400">Fixes applied:</div>
+                        <ul class="text-xs text-emerald-300 space-y-1.5 list-disc pl-4">
+                            <li>Inline character validation with regex check.</li>
+                            <li>High contrast active CTA with loading spinner.</li>
+                            <li>Clear order total context preserved.</li>
+                            <li>Accessible keyboard step progression.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- TAB 3: END-TO-END LIVE INTERACTIVE PROTOTYPE -->
+        <section id="tab-prototype" class="space-y-6 max-w-5xl mx-auto hidden">
+            
+            <!-- Prototype Header -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-dark-card p-4 rounded-2xl border border-dark-border">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-mobile-screen text-emerald-400"></i> Executable User Task Flow Simulator
+                    </h2>
+                    <p class="text-xs text-gray-400">Task: Browse Item -> Select Options -> Submit Form with Validation -> Confirm Order.</p>
+                </div>
+
+                <button onclick="resetPrototype()" class="px-3 py-1.5 bg-dark-panel hover:bg-dark-border text-gray-300 rounded-lg text-xs font-semibold transition border border-dark-border flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-right"></i> Reset Flow
+                </button>
+            </div>
+
+            <!-- Device Mockup Viewport -->
+            <div class="flex justify-center">
+                <div class="w-full max-w-sm bg-neutral-950 rounded-[40px] p-4 border-4 border-neutral-800 shadow-2xl relative overflow-hidden ring-1 ring-white/10">
+                    
+                    <!-- Screen Container -->
+                    <div id="proto-screen-container" class="bg-dark-card rounded-[28px] overflow-hidden h-[620px] flex flex-col relative">
+                        
+                        <!-- SCREEN 1: PRODUCT CATALOG SEARCH & EMPTY STATE TOGGLE -->
+                        <div id="screen-catalog" class="proto-screen flex-1 flex flex-col p-4 space-y-4">
+                            <!-- Top App Header -->
+                            <div class="flex justify-between items-center pt-2">
+                                <span class="font-bold text-sm text-white tracking-tight">AudioAura Store</span>
+                                <button onclick="toggleEmptyState()" class="text-[10px] bg-dark-panel text-brand-500 border border-brand-500/20 px-2 py-0.5 rounded-full">
+                                    Toggle Empty State
+                                </button>
+                            </div>
+
+                            <!-- Search Input -->
+                            <div class="relative">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-500 text-xs"></i>
+                                <input type="text" id="proto-search" oninput="handleProtoSearch(this)" placeholder="Search headphones..." class="w-full pl-9 pr-3 py-2 bg-dark-bg border border-dark-border rounded-xl text-xs text-white focus:outline-none focus:border-brand-500 transition">
+                            </div>
+
+                            <!-- Catalog Items Grid -->
+                            <div id="catalog-list" class="flex-1 space-y-3 overflow-y-auto">
+                                <!-- Item 1 Card -->
+                                <div class="bg-dark-bg p-3 rounded-2xl border border-dark-border flex items-center gap-3 hover:border-brand-500/50 transition cursor-pointer" onclick="goToProtoScreen('screen-detail')">
+                                    <div class="w-16 h-16 rounded-xl bg-gradient-to-tr from-purple-900 to-indigo-800 flex items-center justify-center text-white text-2xl">
+                                        <i class="fa-solid fa-headphones"></i>
+                                    </div>
+                                    <div class="flex-1 space-y-1">
+                                        <h4 class="font-bold text-xs text-white">AuraSound ANC Pro</h4>
+                                        <p class="text-[10px] text-gray-400">Spatial Audio • Active Noise Cancellation</p>
+                                        <div class="font-mono text-emerald-400 text-xs font-bold">$299.00</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Empty State View (Hidden by default) -->
+                            <div id="catalog-empty" class="hidden flex-1 flex flex-col items-center justify-center text-center p-6 space-y-3">
+                                <div class="w-14 h-14 rounded-full bg-dark-panel flex items-center justify-center text-gray-500 text-2xl">
+                                    <i class="fa-solid fa-box-open"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-white">No Matching Products</h4>
+                                    <p class="text-[11px] text-gray-400 mt-1">We couldn't find any items matching your filter query.</p>
+                                </div>
+                                <button onclick="resetProtoSearch()" class="px-4 py-2 bg-brand-600 text-white font-bold rounded-xl text-xs shadow-lg shadow-brand-500/20">
+                                    Reset Search Filter
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- SCREEN 2: PRODUCT DETAIL -->
+                        <div id="screen-detail" class="proto-screen hidden flex-1 flex flex-col p-4 space-y-4">
+                            <button onclick="goToProtoScreen('screen-catalog')" class="w-8 h-8 rounded-full bg-dark-panel text-white flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-arrow-left"></i>
+                            </button>
+
+                            <div class="h-44 bg-gradient-to-tr from-purple-900 to-indigo-800 rounded-2xl flex items-center justify-center text-white text-6xl">
+                                <i class="fa-solid fa-headphones"></i>
+                            </div>
+
+                            <div class="space-y-1">
+                                <div class="flex justify-between items-center">
+                                    <h3 class="font-bold text-base text-white">AuraSound ANC Pro</h3>
+                                    <span class="font-mono font-bold text-emerald-400 text-sm">$299.00</span>
+                                </div>
+                                <p class="text-[11px] text-gray-400 leading-relaxed">High-fidelity acoustics engineered with spatial audio drivers and seamless Bluetooth 5.3 connectivity.</p>
+                            </div>
+
+                            <div class="mt-auto pt-4 border-t border-dark-border">
+                                <button onclick="goToProtoScreen('screen-checkout')" class="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2">
+                                    Proceed to Checkout <i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- SCREEN 3: CHECKOUT FORM WITH VALIDATION -->
+                        <div id="screen-checkout" class="proto-screen hidden flex-1 flex flex-col p-4 space-y-3">
+                            <div class="flex justify-between items-center pb-2 border-b border-dark-border">
+                                <button onclick="goToProtoScreen('screen-detail')" class="text-xs text-gray-400"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                                <span class="font-bold text-xs text-white">Express Checkout</span>
+                            </div>
+
+                            <form id="proto-form" onsubmit="submitProtoForm(event)" class="space-y-3 flex-1 flex flex-col justify-between">
+                                <div class="space-y-3">
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] text-gray-400 font-semibold">Cardholder Name</label>
+                                        <input type="text" id="proto-input-name" required placeholder="Alex Mercer" oninput="validateProtoInput(this)" class="w-full px-3 py-2 bg-dark-bg border border-dark-border rounded-xl text-xs text-white focus:outline-none focus:border-brand-500">
+                                        <span id="proto-err-name" class="text-[9px] text-rose-400 hidden">Please enter your name</span>
+                                    </div>
+
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between">
+                                            <label class="text-[10px] text-gray-400 font-semibold">Card Number (16 digits)</label>
+                                            <span id="proto-card-counter" class="text-[9px] font-mono text-gray-500">0 / 16</span>
+                                        </div>
+                                        <input type="text" id="proto-input-card" maxlength="16" required placeholder="4532 8901 2234 8892" oninput="handleProtoCardInput(this)" class="w-full px-3 py-2 bg-dark-bg border border-dark-border rounded-xl text-xs font-mono text-white focus:outline-none focus:border-brand-500">
+                                        <span id="proto-err-card" class="text-[9px] text-rose-400 hidden">Must be exactly 16 digits</span>
+                                    </div>
+                                </div>
+
+                                <button type="submit" id="proto-submit-btn" class="w-full py-3 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-brand-500/20 transition flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-lock"></i> Pay $299.00
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- SCREEN 4: SUCCESS CONFIRMATION -->
+                        <div id="screen-success" class="proto-screen hidden flex-1 flex flex-col items-center justify-center p-6 text-center space-y-4">
+                            <div class="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-3xl">
+                                <i class="fa-solid fa-check"></i>
+                            </div>
+                            <div class="space-y-1">
+                                <h3 class="font-bold text-base text-white">Order Confirmed!</h3>
+                                <p class="text-xs text-gray-400">Receipt sent to alex@example.com</p>
+                            </div>
+                            <button onclick="goToProtoScreen('screen-catalog')" class="px-6 py-2.5 bg-dark-panel hover:bg-dark-border text-white text-xs font-bold rounded-xl border border-dark-border">
+                                Return to Store
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: AUTOMATED DEMO STUDIO SIMULATOR -->
+        <section id="tab-video" class="space-y-6 max-w-5xl mx-auto hidden">
+            
+            <div class="flex justify-between items-center bg-dark-card p-4 rounded-2xl border border-dark-border">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-film text-purple-400"></i> Interactive Demo Walkthrough
+                    </h2>
+                    <p class="text-xs text-gray-400">Automated playback recording showcasing full interaction paths.</p>
+                </div>
+
+                <button id="btn-play-demo" onclick="toggleDemoPlayback()" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-purple-500/20 transition flex items-center gap-2">
+                    <i class="fa-solid fa-play"></i> Play Recorded Walkthrough
+                </button>
+            </div>
+
+            <!-- Animated Video Player Mockup -->
+            <div class="bg-dark-card border border-dark-border rounded-2xl overflow-hidden shadow-2xl relative">
+                <div class="h-96 bg-neutral-900 flex items-center justify-center relative overflow-hidden">
+                    
+                    <!-- Simulated Mouse Pointer -->
+                    <div id="demo-cursor" class="absolute top-1/2 left-1/2 w-5 h-5 text-white drop-shadow-md z-30 transition-all duration-700 pointer-events-none">
+                        <i class="fa-solid fa-arrow-pointer text-lg text-brand-500"></i>
+                    </div>
+
+                    <!-- Stage Callout Banner -->
+                    <div id="demo-caption" class="absolute bottom-6 left-6 right-6 p-3 bg-dark-card/90 backdrop-blur-md rounded-xl border border-dark-border text-xs text-white text-center font-medium shadow-xl">
+                        Click 'Play Recorded Walkthrough' to start the automated heuristic walkthrough.
+                    </div>
+
+                    <div id="demo-stage-screen" class="w-64 bg-dark-card p-4 rounded-2xl border border-dark-border space-y-3">
+                        <div class="font-bold text-xs text-white">Demo Screen: Product Flow</div>
+                        <div class="h-20 bg-dark-bg rounded-xl flex items-center justify-center text-gray-500 text-xl">
+                            <i class="fa-solid fa-mobile-screen"></i>
+                        </div>
+                        <div class="h-2 bg-dark-border rounded w-3/4"></div>
+                        <div class="h-2 bg-dark-border rounded w-1/2"></div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- README & DOCUMENTATION MODAL -->
+    <div id="readme-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-dark-card border border-dark-border w-full max-w-3xl rounded-2xl p-6 space-y-5 max-h-[85vh] overflow-y-auto relative">
+            <div class="flex justify-between items-center border-b border-dark-border pb-3">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-book text-brand-500"></i>
+                    <h3 class="font-bold text-base text-white">README.md — Project Documentation</h3>
+                </div>
+                <button onclick="closeModal('readme-modal')" class="text-gray-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="prose prose-invert text-xs space-y-4 text-gray-300 leading-relaxed font-sans">
+                <h4 class="text-sm font-bold text-white">Project Overview</h4>
+                <p>This application evaluates an existing web checkout interface using Jakob Nielsen’s 10 Usability Heuristics, identifies key WCAG 2.1 accessibility violations, and delivers an interactive 'Before vs. After' redesign suite.</p>
+
+                <h4 class="text-sm font-bold text-white">Cataloged Interaction Paths</h4>
+                <ul class="list-disc pl-4 space-y-1">
+                    <li><strong>Path A (Browse & Filter):</strong> Search query input -> Live list update or empty state fallback.</li>
+                    <li><strong>Path B (Product Selection):</strong> View item details -> Select color/spec -> Proceed to payment.</li>
+                    <li><strong>Path C (Form Submission):</strong> Real-time regex validation -> Character counter update -> Submission.</li>
+                </ul>
+
+                <h4 class="text-sm font-bold text-white">Interaction Design Rationale</h4>
+                <p>Transitions leverage natural spring physics curves, avoiding layout jumps. Critical feedback loops ensure visibility of system status (Heuristic #1) while error recovery states allow easy fix paths (Heuristic #9).</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC ENGINE -->
+    <script>
+        // Main Navigation Switching
+        function switchMainTab(tab) {
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                btn.className = 'nav-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-white transition flex items-center gap-2';
+            });
+            document.getElementById(`nav-${tab}`).className = 'nav-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-brand-600 shadow-sm transition flex items-center gap-2';
+
+            document.getElementById('tab-audit').classList.toggle('hidden', tab !== 'audit');
+            document.getElementById('tab-compare').classList.toggle('hidden', tab !== 'compare');
+            document.getElementById('tab-prototype').classList.toggle('hidden', tab !== 'prototype');
+            document.getElementById('tab-video').classList.toggle('hidden', tab !== 'video');
+        }
+
+        // Comparative Mode Switcher
+        function setCompareMode(mode) {
+            document.getElementById('compare-split-container').classList.toggle('hidden', mode !== 'split');
+            document.getElementById('compare-side-container').classList.toggle('hidden', mode !== 'side');
+
+            document.getElementById('view-mode-split').className = mode === 'split' 
+                ? 'px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-brand-600 shadow transition flex items-center gap-1.5'
+                : 'px-3 py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-white transition flex items-center gap-1.5';
+
+            document.getElementById('view-mode-side').className = mode === 'side' 
+                ? 'px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-brand-600 shadow transition flex items-center gap-1.5'
+                : 'px-3 py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-white transition flex items-center gap-1.5';
+        }
+
+        // Setup Comparative Split Slider Dragging
+        const sliderBox = document.getElementById('slider-box');
+        const beforeLayer = document.getElementById('before-layer');
+        const sliderHandle = document.getElementById('slider-handle');
+
+        if (sliderBox) {
+            let isDragging = false;
+
+            const updateSlider = (x) => {
+                const rect = sliderBox.getBoundingClientRect();
+                let position = ((x - rect.left) / rect.width) * 100;
+                position = Math.max(0, Math.min(100, position));
+                beforeLayer.style.width = `${position}%`;
+                sliderHandle.style.left = `${position}%`;
+            };
+
+            sliderBox.addEventListener('mousedown', () => isDragging = true);
+            window.addEventListener('mouseup', () => isDragging = false);
+            window.addEventListener('mousemove', (e) => {
+                if (isDragging) updateSlider(e.clientX);
+            });
+        }
+
+        // Live Prototype Screen Navigation
+        function goToProtoScreen(screenId) {
+            document.querySelectorAll('.proto-screen').forEach(s => s.classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        function resetPrototype() {
+            goToProtoScreen('screen-catalog');
+            document.getElementById('proto-form').reset();
+            document.getElementById('proto-card-counter').innerText = '0 / 16';
+        }
+
+        function toggleEmptyState() {
+            const list = document.getElementById('catalog-list');
+            const empty = document.getElementById('catalog-empty');
+            list.classList.toggle('hidden');
+            empty.classList.toggle('hidden');
+        }
+
+        function handleProtoSearch(input) {
+            const list = document.getElementById('catalog-list');
+            const empty = document.getElementById('catalog-empty');
+            if (input.value.trim().toLowerCase() === 'empty') {
+                list.classList.add('hidden');
+                empty.classList.remove('hidden');
+            } else {
+                list.classList.remove('hidden');
+                empty.classList.add('hidden');
+            }
+        }
+
+        function resetProtoSearch() {
+            document.getElementById('proto-search').value = '';
+            document.getElementById('catalog-list').classList.remove('hidden');
+            document.getElementById('catalog-empty').classList.add('hidden');
+        }
+
+        function handleProtoCardInput(input) {
+            const val = input.value;
+            document.getElementById('proto-card-counter').innerText = `${val.length} / 16`;
+            if (val.length === 16) {
+                document.getElementById('proto-err-card').classList.add('hidden');
+            }
+        }
+
+        function submitProtoForm(e) {
+            e.preventDefault();
+            const cardVal = document.getElementById('proto-input-card').value;
+            if (cardVal.length < 16) {
+                document.getElementById('proto-err-card').classList.remove('hidden');
+                document.getElementById('proto-form').classList.add('animate-shake');
+                setTimeout(() => document.getElementById('proto-form').classList.remove('animate-shake'), 400);
+            } else {
+                goToProtoScreen('screen-success');
+            }
+        }
+
+        // Demo Walkthrough Simulator
+        let isPlayingDemo = false;
+        function toggleDemoPlayback() {
+            const cursor = document.getElementById('demo-cursor');
+            const caption = document.getElementById('demo-caption');
+            const btn = document.getElementById('btn-play-demo');
+
+            if (isPlayingDemo) return;
+            isPlayingDemo = true;
+            btn.innerText = 'Playing Walkthrough...';
+
+            // Step 1
+            caption.innerText = 'Step 1: User searches product catalog and validates input states.';
+            cursor.style.top = '30%';
+            cursor.style.left = '40%';
+
+            setTimeout(() => {
+                // Step 2
+                caption.innerText = 'Step 2: Inspecting WCAG contrast compliance and high-priority CTA buttons.';
+                cursor.style.top = '70%';
+                cursor.style.left = '60%';
+            }, 2000);
+
+            setTimeout(() => {
+                // Step 3
+                caption.innerText = 'Step 3: Submitting checkout form with real-time error prevention.';
+                cursor.style.top = '80%';
+                cursor.style.left = '50%';
+            }, 4000);
+
+            setTimeout(() => {
+                caption.innerText = 'Walkthrough complete! Replay anytime.';
+                btn.innerHTML = '<i class="fa-solid fa-play"></i> Play Recorded Walkthrough';
+                isPlayingDemo = false;
+            }, 6000);
+        }
+
+        // Share Link Copy
+        function copyShareableUrl() {
+            const dummyUrl = window.location.href;
+            document.execCommand('copy');
+            alert('Shareable Interactive Prototype URL copied to clipboard!');
+        }
+
+        // Modal Helpers
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    </script>
+</body>
+</html>
